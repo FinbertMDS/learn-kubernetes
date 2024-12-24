@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04-arm64"
+  config.vm.network "private_network", ip: "172.16.11.102"
+  config.vm.hostname = "worker2.xtl"
+
+  config.vm.provider "libvirt" do |vb|
+     vb.name = "worker2.xtl"
+     vb.cpus = 1
+     vb.memory = "1024"
+     vb.gui = true
+  end
+   
+  config.vm.provision "shell", path: "./../setup-container.sh"
+  config.vm.provision "shell", path: "./../setup-kubetools.sh"
+
+  config.vm.provision "shell", inline: <<-SHELL
+
+    echo "root password"
+    # # Centos
+    # echo "123" | passwd --stdin root
+    # # Ubuntu
+    echo 'root:123' | sudo chpasswd
+
+    # # Centos
+    # sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    cat >>/etc/ssh/sshd_config<<EOF
+PermitRootLogin yes
+PasswordAuthentication yes
+EOF
+    systemctl reload sshd
+
+cat >>/etc/hosts<<EOF
+172.16.11.100 master.xtl
+172.16.11.101 worker1.xtl
+172.16.11.102 worker2.xtl
+EOF
+
+  SHELL
+end
