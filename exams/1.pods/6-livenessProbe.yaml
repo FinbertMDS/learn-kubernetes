@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+  labels:
+    app: mypod
+spec:
+  containers:
+  - name: mycontainer
+    image: ngovanhuy0241/k8s_container:php
+    env:
+    - name: PORT
+      value: "8085"
+    ports:
+    - containerPort: 8085
+    resources: {}
+
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8085
+        httpHeaders:
+        - name: live
+          value: "còn sống"
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    
