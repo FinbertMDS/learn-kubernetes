@@ -8,3 +8,6 @@ vagrant resume
 
 cd $DIR/worker2
 vagrant resume
+
+cd $DIR/rancher
+vagrant resume

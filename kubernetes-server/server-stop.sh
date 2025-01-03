@@ -8,3 +8,6 @@ vagrant suspend
 
 cd $DIR/worker2
 vagrant suspend
+
+cd $DIR/rancher
+vagrant suspend

@@ -9,6 +9,9 @@ vagrant destroy -f
 cd $DIR/worker2
 vagrant destroy -f
 
+cd $DIR/rancher
+vagrant destroy -f
+
 kubectl config delete-cluster kubernetes
 kubectl config delete-context kubernetes-admin@kubernetes
 kubectl config unset users.kubernetes-admin

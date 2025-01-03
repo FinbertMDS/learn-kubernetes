@@ -8,3 +8,6 @@ vagrant up
 
 cd $DIR/worker2
 vagrant up
+
+cd $DIR/rancher
+vagrant up
