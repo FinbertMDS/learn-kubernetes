@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: http-test-svc
   # dịch vụ này tạo tại namespace có Haproxy Ingress
-  namespace: ingress-controller
+  namespace: haproxy-controller
 spec:
   ports:
   - port: 80
@@ -21,7 +21,7 @@ metadata:
     run: http-test-svc
   name: http-test-svc
   # Deploy này tạo tại namespace có Haproxy Ingress
-  namespace: ingress-controller
+  namespace: haproxy-controller
 spec:
   replicas: 2
   selector:

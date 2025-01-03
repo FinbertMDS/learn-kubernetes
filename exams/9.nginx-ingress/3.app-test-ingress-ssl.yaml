@@ -1,22 +1,22 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: app
   namespace: nginx-ingress
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
-      - xuanthulab.test
+      - finbertmds.test
       secretName: default-server-secret
-
-    # - hosts:
-    #   - otherdomain.coms
-    #   secretName: otherssl-ssl
   rules:
-  - host: xuanthulab.test
+  - host: finbertmds.test
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: http-test-svc
-          servicePort: 80
+          service:
+            name: http-test-svc
+            port:
+              number: 80
