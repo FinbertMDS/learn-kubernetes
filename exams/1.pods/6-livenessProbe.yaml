@@ -24,4 +24,3 @@ spec:
           value: "còn sống"
       initialDelaySeconds: 10
       periodSeconds: 10
-    
