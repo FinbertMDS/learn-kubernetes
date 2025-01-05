@@ -45,10 +45,10 @@ kubectl get nodes
 Thông tin các máy ảo như bên dưới
 | Hostname | Thông tin hệ thống                                     | Vai trò |
 | -------- | ------------------------------------------------------ | ------- |
-| master   | ubuntu-22.04, containerd, Kubernetes. IP 172.16.10.100 | master  |
-| worker1  | ubuntu-22.04, containerd, Kubernetes. IP 172.16.10.101 | worker  |
-| worker2  | ubuntu-22.04, containerd, Kubernetes. IP 172.16.10.102 | worker  |
-| rancher  | ubuntu-22.04, Docker CE, Kubernetes. IP 172.16.10.103  | rancher |
+| master   | ubuntu-22.04, containerd, Kubernetes. IP 172.16.11.100 | master  |
+| worker1  | ubuntu-22.04, containerd, Kubernetes. IP 172.16.11.101 | worker  |
+| worker2  | ubuntu-22.04, containerd, Kubernetes. IP 172.16.11.102 | worker  |
+| rancher  | ubuntu-22.04, Docker CE, Kubernetes. IP 172.16.11.103  | rancher |
 
 **Chú ý**
 Máy ảo rancher để cuối cùng cài đặt Rancher. Hiện tại thì chưa cần cài đặt.
@@ -110,23 +110,27 @@ EOF
 end
 ```
 
-Trong node master đã cài đặt
+Trong node `master` đã cài đặt
 1. [containerd](kubernetes-server/setup-container.sh)
 2. [kubernetes](kubernetes-server/setup-kubetools.sh)
 3. Đổi password của root thành `123` và setting các hostname của master, worker1, worker2
 
 #### Khởi tạo cluster
+```
 kubeadm init --apiserver-advertise-address=172.16.11.100 --pod-network-cidr=192.168.0.0/16
+```
+![init_cluster](screenshots/k01.3.init_cluster.png)
 
-#### Cài đặt plugin mạng calico sử dụng bởi các Pod
-kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/calico.yaml
-
-Sau khi cài đặt plugin mạng calico, cần tạo folder và các file cấu hình của kubernetes
-
+Sau khi khởi tạo cluster, cần tạo folder và các file cấu hình của kubernetes
 ```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+#### Cài đặt plugin mạng calico sử dụng bởi các Pod
+```
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/calico.yaml
 ```
 
 #### Kiểm tra node master
@@ -139,6 +143,7 @@ kubectl get nodes
 # Các pod đang chạy trong tất cả các namespace
 kubectl get pods -A
 ```
+![master_calico](screenshots/k01.4.master_calico.png)
 
 ### Cấu hình máy local để truy cập tới các cluster
 
@@ -169,7 +174,7 @@ kubectl config get-contexts
 ```
 kubectl config use-context kubernetes-admin@kubernetes
 ```
-
+![local_context](screenshots/k01.5.local_context.png)
 ### Tạo node worker kubernetes
 
 Tạo 2 folder `kubernetes-server/worker1` và `kubernetes-server/worker2` để cấu hình 2 node worker.
@@ -190,6 +195,8 @@ ssh root@172.16.11.100
 kubeadm token create --print-join-command
 ```
 
+![cluster_token_create](screenshots/k01.6.cluster_token_create.png)
+
 2. Trong 2 node worker, kết nối vào Cluster bằng lệnh `kubectl join` được print ở trên
 ```
 ssh root@172.16.11.101
@@ -197,10 +204,14 @@ kubeadm join 172.16.11.100:6443 --token ...
 ssh root@172.16.11.102
 kubeadm join 172.16.11.100:6443 --token ...
 ```
+
+![worker1_join](screenshots/k01.7.worker1_join.png)
+
 3. Kiểm tra các node có trong cluster
 ```
 kubectl get nodes
 ```
+![3nodes](screenshots/k01.8.3nodes.png)
 
 ## Cleanup
 
@@ -211,13 +222,36 @@ kubectl config delete-context kubernetes-admin@kubernetes
 kubectl config unset users.kubernetes-admin
 ```
 
+Xoá 3 node cluster
+```
+./kubernetes-server/server-destroy.sh
+```
+
 ## Sumup
 
+### Bash scripts
+Việc cài đặt 3 node cluster đã được viết trong script `kubernetes-server/server-up.sh`.
+
 ```
-# khởi tạo một Cluster
+./kubernetes-server/server-up.sh
+```
+| Bash script                          | Diễn giải                                                        |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| kubernetes-server/server-up.sh       | Cài đặt và khởi động 3 node                                      |
+| kubernetes-server/server-stop.sh     | Tạm thời dừng hoạt động của 3 node                               |
+| kubernetes-server/server-start.sh    | Khỏi động lại 3 node sau khi dừng                                |
+| kubernetes-server/server-destroy.sh  | Xoá 3 node, sau khi xoá cần cài đặt lại bằng lệnh `server-up.sh` |
+| kubernetes-server/setup-container.sh | Cài đặt containerd, dùng cho các node cluster                    |
+| kubernetes-server/setup-docker.sh    | Cài đặt docker, dùng cho máy rancher                             |
+| kubernetes-server/setup-kubetools.sh | Cài đặt kubernetes tool, dùng cho các node cluster               |
+
+### Các lệnh với kubernetes
+
+```
+# master: khởi tạo một Cluster
 kubeadm init --apiserver-advertise-address=172.16.11.100 --pod-network-cidr=192.168.0.0/16
 
-# Cài đặt giao diện mạng calico sử dụng bởi các Pod
+# master: Cài đặt giao diện mạng calico sử dụng bởi các Pod
 kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/calico.yaml
 
 # Thông tin cluster
@@ -247,9 +281,9 @@ kubectl config get-contexts
 # Đổi ngữ cảnh làm việc (kết nối đến cluster nào)
 kubectl config use-context kubernetes-admin@kubernetes
 
-# Lấy mã kết nối vào Cluster
+# master: Lấy mã kết nối vào Cluster
 kubeadm token create --print-join-command
 
-# node worker kết nối vào Cluster
+# worker: kết nối vào Cluster
 kubeadm join 172.16.11.100:6443 --token ...
 ```

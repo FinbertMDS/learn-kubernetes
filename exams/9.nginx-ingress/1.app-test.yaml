@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: http-test-svc
+  # dịch vụ này tạo tại namespace có Nginx Ingress
   namespace: nginx-ingress
 spec:
   ports:
@@ -19,6 +20,7 @@ metadata:
   labels:
     run: http-test-svc
   name: http-test-svc
+  # Deploy này tạo tại namespace có Nginx Ingress
   namespace: nginx-ingress
 spec:
   replicas: 2
@@ -30,10 +32,6 @@ spec:
       labels:
         run: http-test-app
     spec:
-      volumes:
-        - name: htdocs
-          persistentVolumeClaim:
-            claimName: pvc1
       containers:
       - image: httpd
         imagePullPolicy: IfNotPresent
@@ -42,6 +40,3 @@ spec:
         - containerPort: 80
           protocol: TCP
         resources: {}
-        volumeMounts:
-          - mountPath: /usr/local/apache2/htdocs/
-            name: htdocs

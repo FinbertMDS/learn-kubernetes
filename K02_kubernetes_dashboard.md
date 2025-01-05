@@ -64,7 +64,7 @@ Hướng dẫn [xem tại đây](https://github.com/kubernetes/dashboard/blob/ma
 
 ```
 kubectl apply -f dashboard-adminuser.yaml
-kubectl -n kubernetes-dashboard create token admin-user
+kubectl create token admin-user -n kubernetes-dashboard
 ```
 
 ## Cài đặt Dashboard trên Docker Desktop
